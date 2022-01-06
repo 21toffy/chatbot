@@ -62,7 +62,15 @@ class Stage1Views(APIView):
         if stage_id == 1:
             query = Question.objects.get(stage = stage_id)
             serializer = QuestionSerializer(query)
-            return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
+            print(serializer.data)
+            # new_dict = {
+            #     "question_text": serializer.data["question_text"],
+            #     "stage":"1",
+            #     "next_stage":"2"
+            # }
+            return Response({"status": "success", "question_text": serializer.data["question_text"],
+                "stage":"1",
+                "next_stage":"2", "from":"bot"}, status=status.HTTP_200_OK)
         if stage_id == 2:
             query = Question.objects.get(stage = stage_id)
             print(query)
@@ -77,7 +85,8 @@ class Stage1Views(APIView):
         if stage_id == 1:
             # print(request.data["answer_text"])
             request.session['students_name'] = request.data["answer_text"]
-            students_name_in_session = request.session["students_name"]
+            students_name_in_session = request.session.get("students_name")
+            print(students_name_in_session)
             serializer = QuestionSerializer(data=request.data)
             if serializer.is_valid():
                 current_stage = serializer.data['stage']
@@ -90,19 +99,24 @@ class Stage1Views(APIView):
                 next_question_completed = "Hello " + students_name_in_session + ", " + next_stage_question.question_text + '.'
                 # serializer.save()
                 # this would fetch wuestion 2 and return question 2
-                return Response({"status": "success", "data": next_question_completed, "stage":"1", "next_stage":"2"}, status=status.HTTP_200_OK)
+                return Response({"status": "success", "question_text": next_question_completed, "stage":"1", "next_stage":"2", "from":"bot"}, status=status.HTTP_200_OK)
             else:
                 error_mesage = 'Could not undestand what you just typed, please enter a correct name'
-                return Response({"status": "error", "data": error_mesage}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"status": "error", "question_text": error_mesage}, status=status.HTTP_400_BAD_REQUEST)
 
 
         # type in matric 
         if stage_id == 2:
             # print(request.data["answer_text"])
+            print(request.data)
             request.session['student_matric'] = request.data["answer_text"]
-            students_name_in_session = request.session["students_name"]
+            
+            students_name_in_session = request.session.get("students_name")
+            # students_name_in_session = request.session["students_name"]
             students_matric_in_session = request.session["student_matric"]
 
+            print(students_name_in_session)
+            
             serializer = QuestionSerializer(data=request.data)
             if serializer.is_valid():
                 current_stage = serializer.data['stage']
@@ -112,13 +126,13 @@ class Stage1Views(APIView):
                 print(stinged_next_stage)
                 next_stage_question = Question.objects.get(stage = stinged_next_stage)
                 print(next_stage_question)
-                next_question_completed = "Hello " + students_name_in_session + " with matric " + students_matric_in_session + ", " + next_stage_question.question_text + '.'
+                next_question_completed = "your matric number " + students_matric_in_session + ", " + next_stage_question.question_text + '.'
                 # serializer.save()
                 # this would fetch wuestion 2 and return question 2
-                return Response({"status": "success", "data": next_question_completed, "stage":"2", "next_stage":"3"}, status=status.HTTP_200_OK)
+                return Response({"status": "success", "question_text": next_question_completed, "stage":"2", "next_stage":"3", "from":"bot"}, status=status.HTTP_200_OK)
             else:
                 error_mesage = 'Could not undestand what you just typed, please enter a correct name'
-                return Response({"status": "error", "data": error_mesage}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"status": "error", "question_text": error_mesage}, status=status.HTTP_400_BAD_REQUEST)
 
 
         if stage_id == 3:
@@ -141,11 +155,13 @@ class Stage1Views(APIView):
                 level_check = check_for_level(level_inputed_by_user, request)
                 if level_check is None:
                     error_mesage = 'Sorry no level coordinator for this level enter level in this format "100 level, 200 level" '
-                    return Response({"status": "error", "data": error_mesage}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    next_question_completed = student_name + f" your level coordinator is  {level_check}" + ", "+ next_stage_question.question_text
+                    return Response({"status": "error", "question_text": error_mesage, "stage":"2","from": "bot", "next_stage":"3"}, status=status.HTTP_200_OK)
+                    
 
-                    return Response({"status": "success", "data": next_question_completed, "stage":"3", "next_stage":"4"}, status=status.HTTP_200_OK)
+                else:
+                    next_question_completed = "Dear student" + f" your level coordinator is  {level_check}" + ", "+ next_stage_question.question_text
+
+                    return Response({"status": "success", "question_text": next_question_completed, "stage":"3", "next_stage":"4", "from":"bot"}, status=status.HTTP_200_OK)
 
         if stage_id == 4:
             # print(request.data["answer_text"])
@@ -159,7 +175,7 @@ class Stage1Views(APIView):
                 stinged_next_stage = str(next_stage)
                 next_stage_question = Question.objects.get(stage = stinged_next_stage)
                 next_question_completed = "Your department has been noted "+"( "+ student_department+" ). " + next_stage_question.question_text + '.'
-                return Response({"status": "success", "data": next_question_completed, "stage":"4", "next_stage":"5"}, status=status.HTTP_200_OK)
+                return Response({"status": "success", "question_text": next_question_completed, "stage":"4", "next_stage":"5", "from":"bot"}, status=status.HTTP_200_OK)
             else:
                 error_mesage = 'Could not undestand what you just typed, please enter a matric number'
                 return Response({"status": "error", "data": error_mesage}, status=status.HTTP_400_BAD_REQUEST)
@@ -177,7 +193,7 @@ class Stage1Views(APIView):
                     next_question_completed = next_stage_question.question_text + '.'
                     # serializer.save()
                     # this would fetch wuestion 2 and return question 2
-                    return Response({"status": "success", "data": next_question_completed, "stage":"5", "next_stage":"6"}, status=status.HTTP_200_OK)
+                    return Response({"status": "success", "question_text": next_question_completed, "stage":"5", "next_stage":"6", "from":"bot"}, status=status.HTTP_200_OK)
                 
                 elif have_you_started_reg.lower()=="no":
                     next_stage = int(current_stage) + 2
@@ -187,12 +203,12 @@ class Stage1Views(APIView):
                     next_question_completed = next_stage_question.question_text + '.'
                     # serializer.save()
                     # this would fetch wuestion 2 and return question 2
-                    return Response({"status": "success", "data": next_question_completed, "stage":"5", "next_stage":"7"}, status=status.HTTP_200_OK)
+                    return Response({"status": "success", "question_text": next_question_completed, "stage":"5", "next_stage":"7", "from":"bot"}, status=status.HTTP_200_OK)
                     
 
                 else:
                     error_mesage = 'Did not get that, please reply with either yes or no'
-                    return Response({"status": "error", "data": error_mesage}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"status": "error", "question_text": error_mesage, "from": "bot", "stage":"5", "next_stage":"5", }, status=status.HTTP_200_OK)
 
         if stage_id == 6:
             serializer = QuestionSerializer(data=request.data)
@@ -227,10 +243,10 @@ class Stage1Views(APIView):
                 
                 if stage_checked is None:
                     error_mesage = f'Sorry no stage with the character {stage_number} found enter from stage 1 to stage 7'
-                    return Response({"status": "error", "data": error_mesage}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"status": "error", "question_text": error_mesage, "from":"bot", "stage":"6", "next_stage":"6"}, status=status.HTTP_200_OK)
                 else:
                     # next_question_completed = {stage_checked}
-                    return Response({"status": "success", "data": summary, "stage":"6", "next_stage":"00"}, status=status.HTTP_200_OK)
+                    return Response({"status": "success", "question_text": summary, "stage":"6", "next_stage":"00", "from":"bot"}, status=status.HTTP_200_OK)
                     # stage_checked
 
 
@@ -242,13 +258,14 @@ class Stage1Views(APIView):
                 stinged_next_stage = str(next_stage)
                 next_stage_question = Question.objects.get(stage = stinged_next_stage)
                 # print(next_stage_question.question_text)
-                next_question_completed = next_stage_question.question_text + '...'
+                next_question_completed = "Goodbye!!"
+
                 # serializer.save()
                 # this would fetch wuestion 2 and return question 2
-                return Response({"status": "success", "data": next_question_completed, "stage":"7", "next_stage":"11"}, status=status.HTTP_200_OK)
+                return Response({"status": "success", "question_text": next_question_completed, "stage":"7", "next_stage":"00", "from":"bot"}, status=status.HTTP_200_OK)
             else:
                 error_mesage = 'Could not undestand what you just typed, please enter a correct name'
-                return Response({"status": "error", "data": error_mesage}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"status": "error", "question_text": error_mesage, "stage":"7", "next_stage":"7", "from":"bot"}, status=status.HTTP_200_OK)
         
 
 

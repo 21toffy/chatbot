@@ -3,7 +3,7 @@ from .models import Question, Stages
 
 class QuestionSerializer(serializers.ModelSerializer):
     stage = serializers.CharField(max_length=120)
-    question_text = serializers.CharField(max_length=120)
+    # question_text = serializers.CharField(max_length=120, null=True, blank=True)
     answer_text = serializers.CharField(max_length=120)
 
 
