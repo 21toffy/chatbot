@@ -126,7 +126,7 @@ class Stage1Views(APIView):
                 print(stinged_next_stage)
                 next_stage_question = Question.objects.get(stage = stinged_next_stage)
                 print(next_stage_question)
-                next_question_completed = "your matric number " + students_matric_in_session + ", " + next_stage_question.question_text + '.'
+                next_question_completed = "your Jamb registration number " + students_matric_in_session + ", " + next_stage_question.question_text + '.'
                 # serializer.save()
                 # this would fetch wuestion 2 and return question 2
                 return Response({"status": "success", "question_text": next_question_completed, "stage":"2", "next_stage":"3", "from":"bot"}, status=status.HTTP_200_OK)
@@ -177,7 +177,7 @@ class Stage1Views(APIView):
                 next_question_completed = "Your department has been noted "+"( "+ student_department+" ). " + next_stage_question.question_text + '.'
                 return Response({"status": "success", "question_text": next_question_completed, "stage":"4", "next_stage":"5", "from":"bot"}, status=status.HTTP_200_OK)
             else:
-                error_mesage = 'Could not undestand what you just typed, please enter a matric number'
+                error_mesage = 'Could not undestand what you just typed, please enter a valid jamb registration number'
                 return Response({"status": "error", "data": error_mesage}, status=status.HTTP_400_BAD_REQUEST)
 
         if stage_id == 5:
@@ -188,8 +188,9 @@ class Stage1Views(APIView):
                 if have_you_started_reg.lower()=="yes":
                     next_stage = int(current_stage) + 1
                     stinged_next_stage = str(next_stage)
-                    next_stage_question = Question.objects.get(stage = stinged_next_stage)
-                    # print(next_stage_question.question_text)
+                    print(stinged_next_stage, '---------------')
+                    next_stage_question = Question.objects.get(stage = next_stage)
+                    print('+++++++++++++++++++++++==',next_stage_question.question_text)
                     next_question_completed = next_stage_question.question_text + '.'
                     # serializer.save()
                     # this would fetch wuestion 2 and return question 2
@@ -231,15 +232,17 @@ class Stage1Views(APIView):
                 stage_checked = check_stage(stage_number)
                 print(stage_checked)
 
-                summary = {
-                    "next_stage":{stage_checked},
-                    "student_name": {student_name},
-                    "student_level":{student_level},
-                    "student_department":{student_department},
-                    "student_matric":{student_matric},
 
-                }
-                summary = f"Summary {stage_checked} ! Student Name: {student_name}. Student Level: {student_level}. Student Department: {student_department}. Student Matric: {student_matric}"
+                # summary = {
+                #     "next_stage":{stage_checked},
+                #     "student_name": {student_name},
+                #     "student_level":{student_level},
+                #     "student_department":{student_department},
+                #     "student_matric":{student_matric},
+                # }
+
+
+                summary = {stage_checked}
                 
                 if stage_checked is None:
                     error_mesage = f'Sorry no stage with the character {stage_number} found enter from stage 1 to stage 7'
@@ -250,16 +253,27 @@ class Stage1Views(APIView):
                     # stage_checked
 
 
-        if stage_id == 7:
+        if stage_id == 77:
+            # print(request.data['stage'])
+            current_stage =request.data['stage']
+            next_stage = int(current_stage)
+            stinged_next_stage = str(next_stage)
+            next_stage_question = Question.objects.get(stage = "1")
+            # print(next_stage_question.question_text)
+            next_question_completed = "Goodbye!!"
+
+            # serializer.save()
+            # this would fetch wuestion 2 and return question 2
+            return Response({"status": "success", "question_text": next_question_completed, "stage":"7", "next_stage":"00", "from":"bot"}, status=status.HTTP_200_OK)
+
+        if stage_id == 8:
             serializer = QuestionSerializer(data=request.data)
             if serializer.is_valid():
                 current_stage = serializer.data['stage']
                 next_stage = int(current_stage)
                 stinged_next_stage = str(next_stage)
-                next_stage_question = Question.objects.get(stage = stinged_next_stage)
-                # print(next_stage_question.question_text)
-                next_question_completed = "Goodbye!!"
-
+                next_stage_question = Stages.objects.get(stage = '1')
+                next_question_completed = next_stage_question.stage_instruction
                 # serializer.save()
                 # this would fetch wuestion 2 and return question 2
                 return Response({"status": "success", "question_text": next_question_completed, "stage":"7", "next_stage":"00", "from":"bot"}, status=status.HTTP_200_OK)
@@ -269,7 +283,7 @@ class Stage1Views(APIView):
         
 
 
-        if stage_id == 11:
+        if stage_id == 7:
             serializer = QuestionSerializer(data=request.data)
             if serializer.is_valid():
                 current_stage = serializer.data['stage']
@@ -277,11 +291,11 @@ class Stage1Views(APIView):
 
                 if do_you_want_to_reg.lower()=="yes":
                     stage_at = Stages.objects.filter(stage = "1").first()
-                    return Response({"status": "success", "data": stage_at.stage_instruction, "stage":"11", "next_stage":"00"}, status=status.HTTP_200_OK)
+                    return Response({"status": "success", "question_text": stage_at.stage_instruction, "stage":"11", "next_stage":"00", "from":"bot"}, status=status.HTTP_200_OK)
                 
                 elif do_you_want_to_reg.lower()=="no":
                     message = "Okay, Bye "
-                    return Response({"status": "success", "data": message, "stage":"11", "next_stage":"00"}, status=status.HTTP_200_OK)
+                    return Response({"status": "success", "question_text": message, "stage":"11", "next_stage":"00", "from":"bot"}, status=status.HTTP_200_OK)
 
 
                 else:
